@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { BarList } from "@/components/dashboard/bar-list";
+import { StatGrid, StatTile } from "@/components/dashboard/stat-tile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OverdueBadge, PriorityIndicator, StatusBadge } from "@/components/work-orders/indicators";
@@ -52,6 +54,28 @@ export default function UiKitPage() {
           <Input label="Título" placeholder="Ex.: Banheira com vazamento" />
           <Input label="Local" placeholder="Buscar suíte, quarto ou área" hint="Digite o número ou o nome do local." />
           <Input label="E-mail" type="email" defaultValue="nome@" error="Informe um e-mail válido." />
+        </div>
+      </Section>
+
+      <Section title="Painel (exemplo, dados fictícios)">
+        <StatGrid label="Exemplo">
+          <StatTile label="Abertas" value={12} />
+          <StatTile label="Críticas" value={2} tone="critical" />
+          <StatTile label="Atrasadas" value={3} tone="overdue" />
+          <StatTile label="Em andamento" value={4} />
+          <StatTile label="Tempo médio de resolução" value="1 d 6 h" hint="Mediana 20 h · 14 concluídas" />
+          <StatTile label="Concluídas no prazo" value="86%" hint="12 de 14" />
+        </StatGrid>
+        <div className="max-w-xl">
+          <BarList
+            valueLabel="Exemplo por setor"
+            emptyText=""
+            items={[
+              { key: "a", label: "Bloco A", value: 7, detail: "2 atrasada(s) · 9 concluída(s) no período" },
+              { key: "b", label: "Bloco B", value: 3, detail: "4 concluída(s) no período" },
+              { key: "t", label: "Área técnica", value: 1 },
+            ]}
+          />
         </div>
       </Section>
 

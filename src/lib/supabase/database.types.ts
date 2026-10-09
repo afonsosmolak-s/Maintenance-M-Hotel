@@ -641,6 +641,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      dashboard_metrics: {
+        Args: {
+          p_assignee_id?: string | null
+          p_establishment_id: string
+          p_from: string
+          p_priority?: string | null
+          p_sector_id?: string | null
+          p_status?: string | null
+          p_to: string
+        }
+        Returns: Json
+      }
       add_work_order_item: {
         Args: { p_description: string; p_quantity: number; p_unit_cost: number | null; p_work_order_id: string }
         Returns: string

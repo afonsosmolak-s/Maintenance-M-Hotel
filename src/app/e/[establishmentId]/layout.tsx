@@ -55,6 +55,7 @@ async function EstablishmentNav({ params }: Pick<LayoutProps<"/e/[establishmentI
           Início
         </NavLink>
         <NavLink href={`${base}/ocorrencias`}>Ocorrências</NavLink>
+        {can("dashboard.read") ? <NavLink href={`${base}/painel`}>Painel</NavLink> : null}
         <NavLink href={`${base}/equipamentos`}>Equipamentos</NavLink>
         {can("members.manage") ? <NavLink href={`${base}/equipe`}>Equipe</NavLink> : null}
         {can("settings.manage") ? <NavLink href={`${base}/configuracoes`}>Configurações</NavLink> : null}
