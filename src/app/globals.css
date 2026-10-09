@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/*
+ * Tokens do produto.
+ * Base herdada de zmolak.com (monocromático, Manrope, raio 2px, escala de 4px).
+ * Cor só com significado: prioridade, estado e alerta.
+ * O tema escuro vale para o sistema em modo escuro e para [data-theme="dark"] (painel de TV).
+ */
+:root {
+  --paper: #ffffff;
+  --ink: #000000;
+  --surface: #f4f4f4;
+  --surface-strong: #e6e6e6;
+  --line: #d9d9d9;
+  --muted: #606060;
+
+  --critical: #a52626;
+  --critical-bg: #f8e8e8;
+  --high: #b4410c;
+  --high-bg: #fbece3;
+  --overdue: #8a5a00;
+  --overdue-bg: #fbf1d9;
+  --info: #1d4ed8;
+  --info-bg: #e8eefc;
+  --waiting: #6d28d9;
+  --waiting-bg: #f1ebfd;
+  --success: #15803d;
+  --success-bg: #e5f4ea;
+
+  --focus: #1d4ed8;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #000000;
+    --ink: #ffffff;
+    --surface: #111111;
+    --surface-strong: #1c1c1c;
+    --line: #2a2a2a;
+    --muted: #a3a3a3;
+
+    --critical: #f87171;
+    --critical-bg: #2b0f0f;
+    --high: #fb923c;
+    --high-bg: #2b1608;
+    --overdue: #facc15;
+    --overdue-bg: #2a2205;
+    --info: #60a5fa;
+    --info-bg: #0b1a33;
+    --waiting: #a78bfa;
+    --waiting-bg: #1a1033;
+    --success: #4ade80;
+    --success-bg: #0b2416;
+
+    --focus: #60a5fa;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #000000;
+  --ink: #ffffff;
+  --surface: #111111;
+  --surface-strong: #1c1c1c;
+  --line: #2a2a2a;
+  --muted: #a3a3a3;
+
+  --critical: #f87171;
+  --critical-bg: #2b0f0f;
+  --high: #fb923c;
+  --high-bg: #2b1608;
+  --overdue: #facc15;
+  --overdue-bg: #2a2205;
+  --info: #60a5fa;
+  --info-bg: #0b1a33;
+  --waiting: #a78bfa;
+  --waiting-bg: #1a1033;
+  --success: #4ade80;
+  --success-bg: #0b2416;
+
+  --focus: #60a5fa;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --color-critical: var(--critical);
+  --color-critical-bg: var(--critical-bg);
+  --color-high: var(--high);
+  --color-high-bg: var(--high-bg);
+  --color-overdue: var(--overdue);
+  --color-overdue-bg: var(--overdue-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--info-bg);
+  --color-waiting: var(--waiting);
+  --color-waiting-bg: var(--waiting-bg);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+
+  --font-sans: var(--font-manrope), Arial, sans-serif;
+
+  --radius-control: 2px;
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
