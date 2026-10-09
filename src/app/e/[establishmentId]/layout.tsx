@@ -1,21 +1,28 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { NavLink } from "@/components/layout/nav-link";
 import { brand } from "@/config/brand";
 import { getMyEstablishments, requireEstablishment } from "@/lib/auth/session";
 
+/**
+ * Cabeçalho: no computador, uma linha (unidade · menu · sair).
+ * No celular, duas linhas: unidade e sair em cima, menu deslizante por baixo.
+ */
 export default function EstablishmentLayout({ children, params }: LayoutProps<"/e/[establishmentId]">) {
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <header className="border-b border-line">
-        <div className="mx-auto flex h-14 w-full max-w-[1320px] items-center justify-between gap-4 px-[clamp(16px,4.4vw,72px)]">
-          <Suspense fallback={<span className="text-sm text-muted">{brand.shortName}</span>}>
+        <div className="mx-auto flex w-full max-w-[1320px] flex-wrap items-center gap-x-8 px-[clamp(16px,4.4vw,72px)] pt-3 sm:flex-nowrap sm:pt-0">
+          <Suspense fallback={<span className="order-1 py-2 text-sm text-muted sm:py-0">{brand.shortName}</span>}>
             <EstablishmentNav params={params} />
           </Suspense>
-          <SignOutButton variant="ghost" />
+          <div className="order-2 ml-auto sm:order-3">
+            <SignOutButton variant="ghost" />
+          </div>
         </div>
       </header>
-      <main className="mx-auto flex w-full max-w-[1320px] flex-1 flex-col gap-8 px-[clamp(16px,4.4vw,72px)] py-10">
+      <main className="mx-auto flex w-full max-w-[1320px] flex-1 flex-col gap-8 px-[clamp(16px,4.4vw,72px)] py-8 sm:py-10">
         {children}
       </main>
     </div>
@@ -29,38 +36,29 @@ async function EstablishmentNav({ params }: Pick<LayoutProps<"/e/[establishmentI
   const base = `/e/${establishment.id}`;
 
   return (
-    <nav aria-label="Principal" className="flex min-w-0 items-center gap-6 text-sm">
-      <span className="flex min-w-0 flex-col leading-tight">
-        <span className="truncate font-semibold">{establishment.name}</span>
+    <>
+      <span className="order-1 flex min-w-0 max-w-[60%] flex-col leading-tight sm:max-w-56">
+        <span className="truncate text-sm font-semibold">{establishment.name}</span>
         {hasOthers ? (
           <Link href="/selecionar" className="text-xs text-muted hover:text-ink">
             Trocar unidade
           </Link>
         ) : (
-          <span className="text-xs text-muted">{establishment.roleName}</span>
+          <span className="truncate text-xs text-muted">{establishment.roleName}</span>
         )}
       </span>
-      <div className="flex items-center gap-5 overflow-x-auto whitespace-nowrap">
-        <Link href={base} className="text-muted hover:text-ink">
+      <nav
+        aria-label="Principal"
+        className="order-3 mt-1 flex w-full gap-5 overflow-x-auto sm:order-2 sm:mt-0 sm:w-auto sm:flex-1"
+      >
+        <NavLink href={base} exact>
           Início
-        </Link>
-        <Link href={`${base}/ocorrencias`} className="text-muted hover:text-ink">
-          Ocorrências
-        </Link>
-        <Link href={`${base}/equipamentos`} className="text-muted hover:text-ink">
-          Equipamentos
-        </Link>
-        {can("members.manage") ? (
-          <Link href={`${base}/equipe`} className="text-muted hover:text-ink">
-            Equipe
-          </Link>
-        ) : null}
-        {can("settings.manage") ? (
-          <Link href={`${base}/configuracoes`} className="text-muted hover:text-ink">
-            Configurações
-          </Link>
-        ) : null}
-      </div>
-    </nav>
+        </NavLink>
+        <NavLink href={`${base}/ocorrencias`}>Ocorrências</NavLink>
+        <NavLink href={`${base}/equipamentos`}>Equipamentos</NavLink>
+        {can("members.manage") ? <NavLink href={`${base}/equipe`}>Equipe</NavLink> : null}
+        {can("settings.manage") ? <NavLink href={`${base}/configuracoes`}>Configurações</NavLink> : null}
+      </nav>
+    </>
   );
 }
