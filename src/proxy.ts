@@ -2,8 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { publicEnv } from "@/lib/env";
 
-/** Rotas acessíveis sem sessão. Todo o resto exige login (verificação otimista; o banco decide o acesso real). */
-const PUBLIC_PATHS = ["/entrar", "/recuperar-senha", "/auth/", "/ui-kit"];
+/**
+ * Rotas acessíveis sem sessão. Todo o resto exige login (verificação otimista; o banco decide o acesso real).
+ * A TV (/display, /api/display/*) não tem sessão de utilizador: autentica-se com a credencial do dispositivo.
+ */
+const PUBLIC_PATHS = ["/entrar", "/recuperar-senha", "/auth/", "/ui-kit", "/display", "/api/display/"];
 
 function isPublic(pathname: string) {
   return pathname === "/" || PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(path));

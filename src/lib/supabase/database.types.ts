@@ -699,11 +699,94 @@ export type Database = {
         }
         Relationships: []
       }
+      displays: {
+        Row: {
+          id: string
+          establishment_id: string
+          name: string
+          config: Json
+          active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          name: string
+          config?: Json
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          name?: string
+          config?: Json
+          active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      display_devices: {
+        Row: {
+          id: string
+          establishment_id: string
+          display_id: string
+          name: string
+          token_hash: string
+          expires_at: string
+          last_seen_at: string | null
+          created_by: string | null
+          created_at: string
+          revoked_at: string | null
+          revoked_by: string | null
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          display_id: string
+          name: string
+          token_hash: string
+          expires_at: string
+          last_seen_at?: string | null
+          created_by?: string | null
+          created_at?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          display_id?: string
+          name?: string
+          token_hash?: string
+          expires_at?: string
+          last_seen_at?: string | null
+          created_by?: string | null
+          created_at?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      claim_display_pairing: {
+        Args: { p_code: string; p_device_name: string; p_display_id: string; p_establishment_id: string }
+        Returns: undefined
+      }
+      display_feed: { Args: { p_token_hash: string; p_valid_days?: number }; Returns: Json }
+      display_pairing_exchange: {
+        Args: { p_secret_hash: string; p_token_hash: string; p_valid_days?: number }
+        Returns: string
+      }
+      display_pairing_start: { Args: { p_code: string; p_secret_hash: string }; Returns: string }
+      revoke_display_device: { Args: { p_device_id: string }; Returns: undefined }
       run_preventive_generation: { Args: { p_establishment_id: string }; Returns: number }
       dashboard_metrics: {
         Args: {
