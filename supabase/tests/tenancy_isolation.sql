@@ -31,12 +31,36 @@ begin
     (u_tech_a, 'tech-a@test.local', 'authenticated', 'authenticated');
   insert into public.platform_admins (user_id) values (u_platform);
 
-  -- ---------------------------------------------------------------- plataforma
-  perform set_config('request.jwt.claims', json_build_object('sub', u_platform, 'role', 'authenticated')::text, true);
+  -- ------------------------------------------- plataforma sem duas etapas (AAL1)
+  perform set_config('request.jwt.claims', json_build_object('sub', u_platform, 'role', 'authenticated', 'aal', 'aal1')::text, true);
   set local role authenticated;
 
-  est_a := public.create_establishment('Motel A', 'Motel A Ltda', '11.111.111/0001-11', 'motel', u_owner_a);
-  est_b := public.create_establishment('Hotel B', 'Hotel B SA', '22222222000122', 'hotel', u_owner_b);
+  failed := false;
+  begin
+    perform public.create_establishment('Sem 2FA', 'Sem 2FA Ltda', '11.222.333/0001-81', 'motel', u_owner_a);
+  exception when insufficient_privilege then failed := true;
+  end;
+  if not failed then raise exception 'plataforma agiu sem verificação em duas etapas'; end if;
+  checks := checks + 1;
+
+  if public.my_platform_access() <> 'needs_mfa' then raise exception 'my_platform_access deveria pedir 2FA'; end if;
+  checks := checks + 1;
+  reset role;
+
+  -- ---------------------------------------------------------------- plataforma
+  perform set_config('request.jwt.claims', json_build_object('sub', u_platform, 'role', 'authenticated', 'aal', 'aal2')::text, true);
+  set local role authenticated;
+
+  failed := false;
+  begin
+    perform public.create_establishment('CNPJ ruim', 'Ruim Ltda', '11.222.333/0001-82', 'motel', u_owner_a);
+  exception when check_violation then failed := true;
+  end;
+  if not failed then raise exception 'aceitou CNPJ com dígito verificador errado'; end if;
+  checks := checks + 1;
+
+  est_a := public.create_establishment('Motel A', 'Motel A Ltda', '11.222.333/0001-81', 'motel', u_owner_a);
+  est_b := public.create_establishment('Hotel B', 'Hotel B SA', '45723174000110', 'hotel', u_owner_b);
   select count(*) into n from public.establishments;
   if n <> 2 then raise exception 'plataforma deveria ver 2 estabelecimentos, viu %', n; end if;
   checks := checks + 1;
@@ -114,7 +138,7 @@ begin
 
   failed := false;
   begin
-    perform public.create_establishment('X', 'X Ltda', '33333333000133', 'hotel', u_owner_a);
+    perform public.create_establishment('X', 'X Ltda', '12ABC34501DE35', 'hotel', u_owner_a);
   exception when insufficient_privilege then failed := true;
   end;
   if not failed then raise exception 'dono criou estabelecimento'; end if;
@@ -227,7 +251,7 @@ begin
 
   -- --------------------------------------------- conta suspensa perde acesso
   reset role;
-  perform set_config('request.jwt.claims', json_build_object('sub', u_platform, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claims', json_build_object('sub', u_platform, 'role', 'authenticated', 'aal', 'aal2')::text, true);
   set local role authenticated;
   perform public.set_establishment_status(est_a, 'suspended');
 
