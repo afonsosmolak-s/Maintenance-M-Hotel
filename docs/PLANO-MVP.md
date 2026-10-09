@@ -79,13 +79,13 @@ Confirmo a stack que a ZMOLAK já usa. Ela atende a todos os requisitos sem adic
 | D1 | Idioma da interface | ✅ **pt-BR**, com os textos centralizados |
 | D2 | Visibilidade do técnico | ✅ **Vê todas as ocorrências, só altera as que lhe estão atribuídas** |
 | D3 | Quem usa o sistema | ✅ **Só gestão e equipe de manutenção.** A recepção não participa; não existe perfil "Solicitante" |
-| D4 | Funções personalizadas no MVP | Proposto: 4 funções padrão editáveis + criação de novas a partir do catálogo fixo de permissões |
-| D5 | Nomes de estados e prioridades editáveis | Proposto: **não no MVP**; cada estabelecimento configura só o prazo (SLA) por prioridade |
+| D4 | Funções (cargos) | ✅ **Só 2 funções padrão: Proprietário e Gerente.** Quando o estabelecimento tiver mais gente, o próprio cliente cria o cargo (ex.: "Técnico"), escolhe o que ele pode fazer e convida a pessoa com login próprio |
+| D5 | Nomes de estados e prioridades editáveis | ✅ **Não**; estados e prioridades são fixos, e cada estabelecimento configura só o prazo (SLA) por prioridade |
 | D6 | Dispositivo da TV no piloto | ✅ **Android TV / Google TV stick + navegador em modo quiosque** (ver 2.5) |
 | D7 | Domínio | ✅ Testes em `*.vercel.app`; domínio próprio antes do piloto |
-| D8 | Notificações (e-mail ou *push*) | Proposto: **fora do MVP**; a TV e "Minhas tarefas" cobrem o piloto |
-| D9 | Retenção da auditoria | Proposto: 5 anos; anonimizar o utilizador quando for removido (LGPD) |
-| D10 | Provisionamento de clientes | Proposto: script interno no MVP; painel de plataforma quando houver mais clientes |
+| D8 | Notificações (e-mail ou *push*) | ✅ **Fora do MVP**; a TV e "Minhas tarefas" cobrem o piloto |
+| D9 | Retenção da auditoria | ✅ **3 anos**; dados pessoais de quem sai são anonimizados (LGPD) |
+| D10 | Cadastro de clientes | ✅ **Painel administrativo ZMOLAK** (`/plataforma`), em versão enxuta (ver 2.3) |
 | D11 | Unidade de contratação | ✅ **Cada estabelecimento (CNPJ) contrata e paga separadamente**, mesmo que o dono tenha várias unidades (ver 2.1) |
 
 ---
@@ -182,28 +182,40 @@ erDiagram
 
 Catálogo fixo (verificado **no banco** por RLS e funções, e repetido na interface só para esconder ações):
 
-Só gestão e equipe de manutenção usam o sistema (D3).
+Só gestão e equipe de manutenção usam o sistema (D3). Cada estabelecimento começa com **2 funções** (D4); as outras são criadas pelo próprio cliente quando precisar.
 
-| Permissão | Proprietário | Gestor | Supervisor | Técnico |
-|---|:-:|:-:|:-:|:-:|
-| `establishment.manage` (dados do estabelecimento, plano) | ✓ | | | |
-| `members.manage` (convites, funções) | ✓ | ✓ | | |
-| `settings.manage` (locais, categorias, SLA) | ✓ | ✓ | | |
-| `assets.manage` | ✓ | ✓ | ✓ | |
-| `work_orders.create` | ✓ | ✓ | ✓ | ✓ |
-| `work_orders.read_all` | ✓ | ✓ | ✓ | ✓ (D2) |
-| `work_orders.assign` | ✓ | ✓ | ✓ | |
-| `work_orders.manage` (editar qualquer uma, cancelar) | ✓ | ✓ | ✓ | |
-| `work_orders.execute` (iniciar, pausar, concluir as **suas**) | ✓ | ✓ | ✓ | ✓ |
-| `costs.read` / `costs.write` | ✓ | ✓ | ✓ / ✓ | — / ✓ (só na própria OS) |
-| `preventive.manage` | ✓ | ✓ | ✓ | |
-| `displays.manage` | ✓ | ✓ | | |
-| `dashboard.read` | ✓ | ✓ | ✓ | |
-| `audit.read` | ✓ | ✓ | | |
+| Permissão | Proprietário | Gerente | Exemplo de cargo criado pelo cliente: "Técnico" |
+|---|:-:|:-:|:-:|
+| `establishment.manage` (dados do estabelecimento) | ✓ | | |
+| `members.manage` (convidar pessoas, criar e editar cargos) | ✓ | ✓ | |
+| `settings.manage` (locais, categorias, SLA) | ✓ | ✓ | |
+| `assets.manage` | ✓ | ✓ | |
+| `work_orders.create` | ✓ | ✓ | ✓ |
+| `work_orders.read_all` | ✓ | ✓ | ✓ (D2) |
+| `work_orders.assign` | ✓ | ✓ | |
+| `work_orders.manage` (editar qualquer uma, cancelar) | ✓ | ✓ | |
+| `work_orders.execute` (iniciar, pausar, concluir as **suas**) | ✓ | ✓ | ✓ |
+| `costs.read` / `costs.write` | ✓ | ✓ | — / ✓ (só na própria OS) |
+| `preventive.manage` | ✓ | ✓ | |
+| `displays.manage` | ✓ | ✓ | |
+| `dashboard.read` | ✓ | ✓ | |
+| `audit.read` | ✓ | ✓ | |
 
-- O acesso é sempre **permissão × estabelecimento**: a mesma pessoa pode ser Gestor numa unidade e não ter acesso a outra.
+- **Criar um cargo:** em *Configurações › Equipe › Cargos*, o cliente dá um nome ao cargo e marca as permissões numa lista simples, em português (ex.: "Pode atribuir serviços a outras pessoas"). Depois convida a pessoa por e-mail; ela cria a sua senha e entra com login próprio.
+- O Proprietário não pode ser removido nem rebaixado por um Gerente, e o estabelecimento tem sempre pelo menos um Proprietário.
+- O acesso é sempre **permissão × estabelecimento**: a mesma pessoa pode ser Gerente numa unidade e não ter acesso a outra.
 - Mutações passam por **Server Actions → validação Zod → função SQL ou insert sujeito a RLS**. A interface nunca é a única barreira.
 - Separação entre plataforma e cliente: o admin ZMOLAK não é membro dos estabelecimentos. Suporte a clientes, quando necessário, será feito por um mecanismo explícito e auditado (fora do MVP).
+
+**Painel administrativo ZMOLAK (`/plataforma`, D10)**
+
+Área separada, só para utilizadores em `platform_admins`, com **verificação em duas etapas obrigatória**. Versão do MVP:
+- Cadastrar estabelecimento (nome, razão social, CNPJ, tipo, modelo Motel/Hotel/Em branco) e **enviar convite ao Proprietário**.
+- Listar estabelecimentos com estado da conta, número de utilizadores e último acesso.
+- **Suspender e reativar** um estabelecimento (ex.: falta de pagamento). Suspenso = ninguém entra e as TVs mostram "Conta suspensa"; nenhum dado é apagado.
+- Reenviar convite do Proprietário.
+
+O painel **não mostra** ocorrências, fotos nem dados operacionais dos clientes. Todas as ações dele geram auditoria (`actor_type = platform`). Cobrança automática fica fora do MVP.
 
 ### 2.4 Auditoria
 
@@ -212,7 +224,7 @@ Só gestão e equipe de manutenção usam o sistema (D3).
 - **Nenhum papel** tem `UPDATE` ou `DELETE` na tabela (privilégios revogados, nenhuma política de escrita). Correções viram novos eventos.
 - Leitura pelos clientes: só quem tem `audit.read`, e só do seu estabelecimento.
 - **Logs técnicos e de segurança ficam separados:** tentativas de login ficam nos logs do Supabase Auth, erros da aplicação nos logs da Vercel. Não se misturam com a auditoria operacional.
-- **LGPD:** só nome, e-mail e telefone opcional. Na remoção de um utilizador, o perfil é anonimizado e os eventos mantêm só o UUID. Retenção proposta em D9.
+- **LGPD:** só nome, e-mail e telefone opcional. Na remoção de um utilizador, o perfil é anonimizado e os eventos mantêm só o UUID. Retenção: 3 anos (D9).
 
 ### 2.5 Painel de TV
 
@@ -302,13 +314,16 @@ O *build* do painel terá como alvo Chromium ≥ 87 e será testado com um perfi
 
 | Função | Página inicial | Ações principais |
 |---|---|---|
-| **Gestão** (Gestor/Proprietário) | Dashboard: indicadores, críticas, atrasadas, preventivas próximas, carga por responsável, tempo médio de resolução (só com amostra suficiente; caso contrário, "Dados insuficientes") | Filtrar por período, setor, prioridade, estado e responsável. Abrir qualquer OS. |
-| **Supervisor** | Fila de triagem: *Pendentes sem responsável* no topo, depois atrasadas | Atribuir ou reatribuir com um toque. Ajustar prioridade e prazo. Cancelar com motivo. |
-| **Técnico** | *Minhas tarefas* (celular): cartões grandes ordenados por urgência | Iniciar, Pausar, Aguardando material, Concluir (resumo, foto, materiais). Abrir nova ocorrência em menos de 30 s. |
-| **Admin do estabelecimento** | Configurações | Árvore de locais, categorias, SLAs, convites, funções, painéis de TV, pareamento e revogação de TVs. |
+A interface se adapta às **permissões** de quem entra, não ao nome do cargo. Assim, um cargo criado pelo cliente funciona sem telas novas.
+
+| Quem | Página inicial | Ações principais |
+|---|---|---|
+| **Proprietário / Gerente** | Dashboard: indicadores, críticas, atrasadas, preventivas próximas, carga por responsável, tempo médio de resolução (só com amostra suficiente; caso contrário, "Dados insuficientes"). Logo abaixo, a fila *Pendentes sem responsável* | Abrir ocorrência, atribuir, ajustar prioridade e prazo, cancelar com motivo. Filtrar por período, setor, prioridade, estado e responsável. Configurações (locais, categorias, SLAs, equipe, cargos, painéis e TVs). |
+| **Cargo com execução** (ex.: Técnico) | *Minhas tarefas* (celular): cartões grandes ordenados por urgência | Iniciar, Pausar, Aguardando material, Concluir (resumo, foto, materiais). Abrir nova ocorrência em menos de 30 s. |
+| **Admin ZMOLAK** | `/plataforma` | Cadastrar, suspender e reativar estabelecimentos. |
 | **TV** | Painel | Só visualização. |
 
-Toda a app é **responsiva**. Técnico e Supervisor são pensados primeiro para celular; Gestão e Admin para computador, mas funcionam no telemóvel.
+Enquanto o estabelecimento tiver só Proprietário e Gerente, o Gerente é o responsável pelas ocorrências e pode concluí-las ele mesmo. Toda a app é **responsiva**: as telas de execução são pensadas primeiro para celular; dashboard e configurações para computador, mas funcionam no celular.
 
 ### 3.3 Uma interface para motel e hotel
 
@@ -327,7 +342,7 @@ Cada etapa termina com algo verificável. Só avanço com a etapa anterior valid
 | # | Etapa | Entregável | Verificação |
 |---|---|---|---|
 | 1 | **Fundação** | Next.js + TS strict + Tailwind com *tokens* ZMOLAK, Supabase CLI e migrações versionadas no repositório, CI (lint, typecheck, testes), deploy de preview na Vercel, `brand.ts` | Build e CI verdes; página de componentes base em claro e escuro |
-| 2 | **Tenancy, auth e permissões** | `establishments`, `profiles`, `roles`, `memberships`, seletor de unidade, funções `app.has_permission`, **infraestrutura de auditoria** (trigger genérico), login, recuperação, convites, script de provisionamento do piloto | **pgTAP:** utilizador A não lê nem escreve dados de B (tabelas, RPC e REST direto); convite expira; auditoria imutável |
+| 2 | **Tenancy, auth e permissões** | `establishments`, `profiles`, `roles`, `memberships`, seletor de unidade, funções `app.has_permission`, **infraestrutura de auditoria** (trigger genérico), login, recuperação, convites, cargos personalizados, **painel `/plataforma`** (cadastro, convite do Proprietário, suspensão) | **pgTAP:** utilizador A não lê nem escreve dados de B (tabelas, RPC e REST direto); convite expira; auditoria imutável |
 | 3 | **Estrutura operacional** | Tipos de local, árvore de locais, categorias, equipamentos, modelos Motel/Hotel, telas de configuração | FK composta impede referência entre estabelecimentos; testes de permissão por função |
 | 4 | **Ocorrências / OS** | Formulário mobile, lista com filtros, detalhe, máquina de estados, atribuição, comentários, materiais e custos, **fotos** (storage privado, remoção de EXIF, URL assinada) | Transições inválidas recusadas no banco; técnico não altera OS alheia; anexo de outro tenant inacessível mesmo conhecendo o caminho |
 | 5 | **Dashboard** | Indicadores com dados reais e filtros; estados vazios honestos | Números conferidos com consultas SQL de referência |
