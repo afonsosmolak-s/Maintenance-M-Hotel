@@ -26,13 +26,13 @@ Fonte: site em produção (`/pt-BR`), CSS compilado e estilos computados no nave
 
 **Como isso se traduz no produto**
 
-- A base do produto herda a marca: Manrope, preto e branco, raio de 2px, linhas finas, escala de 4px, títulos com *tracking* negativo, movimento de 180ms.
+- **O produto tem interface própria**, não é uma cópia do site. Do site ele toma as referências: Manrope, preto e branco, raio de 2px, linhas finas, escala de 4px, títulos com *tracking* negativo, movimento de 180ms. Os elementos gráficos do logo (o K estilizado e as barras) não são reaproveitados.
 - **O produto precisa de cor onde o site não precisa.** Um sistema de manutenção depende de estados e prioridades reconhecíveis à primeira vista. Proposta: manter a interface monocromática e usar cor **apenas com significado** (prioridade, estado, alerta). Nada de cor decorativa.
   - Crítica: vermelho derivado do `--error` do site (`#a52626` no claro, um tom mais vivo no escuro, para contraste).
   - Atrasada: âmbar. Em andamento: azul. Concluída: verde. Aguardando material: violeta/cinza-azulado.
   - A cor nunca vem sozinha: é sempre acompanhada de rótulo e ícone (daltonismo e TV a distância).
 - **Painel de TV em fundo preto** (`--ink`). Fica coerente com a marca, reduz o brilho num ambiente de equipa e destaca as cores semânticas.
-- As barras `/ // ///` podem servir para indicar o **nível de prioridade** (1 a 3 barras). Isso liga a marca a um elemento funcional, sem ser só decoração.
+- A prioridade é mostrada com um indicador próprio do produto (cor + rótulo + ícone de nível), desenhado para ser lido a distância na TV.
 - Personalização do cliente (logo e uma cor de identificação) aparece **só** num selo no cabeçalho e no topo do painel de TV. Tipografia, componentes e cores semânticas não são personalizáveis.
 
 ### 1.2 Repositório e infraestrutura existentes
@@ -60,32 +60,33 @@ Confirmo a stack que a ZMOLAK já usa. Ela atende a todos os requisitos sem adic
 | Tempo real | *Polling* com ETag no MVP; **Realtime Broadcast** como melhoria (ver 2.5) | Smart TVs têm WebSockets instáveis, e o polling é previsível. |
 | Agendamento | **pg_cron** (uma tarefa diária) | Gera as ordens preventivas sem precisar de servidor de *jobs*. |
 | Testes | **pgTAP** (RLS e funções SQL), **Vitest** (domínio), **Playwright** (fluxos e TV em 1080p/4K) | O isolamento entre clientes é testado na própria base de dados, incluindo chamadas diretas à API. |
-| Hospedagem | **Vercel** | O conector já está disponível nesta máquina. Falta definir o domínio. |
+| Hospedagem | **Vercel** | O conector já está disponível nesta máquina. Testes no domínio gratuito `*.vercel.app`; domínio próprio só antes do piloto. |
 
 ### 1.4 Riscos e decisões em aberto
 
 **Riscos**
 
-1. **Plano gratuito do Supabase em produção.** Não tem backups com PITR, e o projeto pode ser pausado por inatividade. Para o piloto com dados reais recomendo o **plano Pro antes de entrar em produção**. Para desenvolvimento, o gratuito serve.
+1. **Plano gratuito do Supabase.** Não tem backups com PITR, e o projeto pode ser pausado por inatividade. **Decidido:** gratuito durante o desenvolvimento; migração para a org Pro da ZMOLAK antes de entrar dados reais do piloto. As migrações versionadas no repositório tornam essa troca simples.
 2. **Navegadores de Smart TV.** Tizen e webOS trazem Chromium antigo, entram em repouso e não têm modo quiosque fiável. Mitigação em 2.5: dispositivo recomendado + *build* compatível + reconexão.
 3. **Fotografias em suítes de motel.** Há risco de privacidade, com hóspedes ou objetos pessoais aparecendo. Mitigações: orientação no ecrã de captura, **remoção de EXIF/GPS** no upload e acesso aos anexos só com permissão.
 4. **Âmbito.** A tentação de adicionar governança, ocupação ou integração com o Sismotel. O plano exclui tudo isso explicitamente (secção 11 do briefing).
 5. **Adoção pela equipa técnica.** Se registar uma ocorrência no telemóvel levar mais de cerca de 30 segundos, as pessoas voltam ao WhatsApp. O formulário móvel é tratado como funcionalidade crítica.
 
-**Decisões que preciso de vocês** (as minhas recomendações estão em negrito)
+**Decisões**
 
-| # | Decisão | Recomendação |
+| # | Decisão | Estado |
 |---|---|---|
-| D1 | Idioma da interface: pt-BR ou pt-PT? (o briefing está em pt-PT e o piloto é no Brasil) | **pt-BR no MVP**, com os textos centralizados para traduzir depois |
-| D2 | O técnico vê todas as ocorrências do estabelecimento ou só as suas? | **Vê todas, mas só altera as que lhe estão atribuídas** |
-| D3 | Quem reporta problemas no piloto (recepção, camareiras)? Com contas individuais? | **Perfil "Solicitante" individual**: abre ocorrências e vê só as suas |
-| D4 | Funções personalizadas no MVP? | **Sim, mas simples**: 5 funções padrão editáveis + criação de novas a partir do catálogo fixo de permissões |
-| D5 | Nomes dos estados e prioridades editáveis por cliente? | **Não no MVP.** Estados e prioridades são fixos no sistema; cada estabelecimento configura só o **prazo (SLA) por prioridade** |
-| D6 | Dispositivo da TV no piloto | **Android TV stick + navegador quiosque**, ou mini-PC com Chromium em quiosque. Ver 2.5 |
-| D7 | Domínio da aplicação (ex.: `manutencao.zmolak.com` ou `app.zmolak.com`) | A definir |
-| D8 | Notificações (e-mail ou *push*) para ocorrências críticas | **Fora do MVP.** A TV e a lista "Minhas tarefas" cobrem o piloto; avaliar depois |
-| D9 | Retenção da auditoria | **5 anos para eventos operacionais**; anonimizar o utilizador quando for removido (LGPD) |
-| D10 | Provisionamento de novos clientes | **Script interno no MVP** (piloto único); painel de plataforma só quando houver mais clientes |
+| D1 | Idioma da interface | ✅ **pt-BR**, com os textos centralizados |
+| D2 | Visibilidade do técnico | ✅ **Vê todas as ocorrências, só altera as que lhe estão atribuídas** |
+| D3 | Quem usa o sistema | ✅ **Só gestão e equipe de manutenção.** A recepção não participa; não existe perfil "Solicitante" |
+| D4 | Funções personalizadas no MVP | Proposto: 4 funções padrão editáveis + criação de novas a partir do catálogo fixo de permissões |
+| D5 | Nomes de estados e prioridades editáveis | Proposto: **não no MVP**; cada estabelecimento configura só o prazo (SLA) por prioridade |
+| D6 | Dispositivo da TV no piloto | ✅ **Android TV / Google TV stick + navegador em modo quiosque** (ver 2.5) |
+| D7 | Domínio | ✅ Testes em `*.vercel.app`; domínio próprio antes do piloto |
+| D8 | Notificações (e-mail ou *push*) | Proposto: **fora do MVP**; a TV e "Minhas tarefas" cobrem o piloto |
+| D9 | Retenção da auditoria | Proposto: 5 anos; anonimizar o utilizador quando for removido (LGPD) |
+| D10 | Provisionamento de clientes | Proposto: script interno no MVP; painel de plataforma quando houver mais clientes |
+| D11 | Unidade de contratação | ✅ **Cada estabelecimento (CNPJ) contrata e paga separadamente**, mesmo que o dono tenha várias unidades (ver 2.1) |
 
 ---
 
@@ -93,13 +94,15 @@ Confirmo a stack que a ZMOLAK já usa. Ela atende a todos os requisitos sem adic
 
 ### 2.1 Modelo multi-tenant
 
-**Um único banco, esquema partilhado, isolamento por linha (RLS).** Cada tabela de dados de cliente tem `organization_id` e `establishment_id`. Em escala de centenas de estabelecimentos, este modelo é o mais simples de operar e migrar. Bancos ou esquemas separados por cliente multiplicariam o custo de migrações sem trazer ganho de segurança real, desde que a RLS esteja testada.
+**Um único banco, esquema partilhado, isolamento por linha (RLS).** Cada tabela de dados de cliente tem `establishment_id`. Em escala de centenas de estabelecimentos, este modelo é o mais simples de operar e migrar. Bancos ou esquemas separados por cliente multiplicariam o custo de migrações sem trazer ganho de segurança real, desde que a RLS esteja testada.
 
-**Organização × Estabelecimento**
+**O estabelecimento é o cliente (tenant)** (D11)
 
-- **Organização** é o cliente comercial: quem contrata e paga, e é dono dos utilizadores e das funções. Exemplo: "Grupo X".
-- **Estabelecimento** é a propriedade física: um motel ou um hotel, com os seus locais, equipamentos, ocorrências e TVs.
-- Uma organização tem **1..N estabelecimentos**. O piloto terá 1, mas redes com várias unidades são comuns nos dois segmentos, e acrescentar isso depois obrigaria a migrar todos os dados.
+- Cada motel ou hotel é um **cliente independente**: tem o seu CNPJ, contrata e paga separadamente, e é a fronteira de isolamento dos dados.
+- Funções, convites, locais, equipamentos, ocorrências, TVs e auditoria pertencem ao estabelecimento.
+- Um dono com várias unidades tem **vários estabelecimentos**. O mesmo login pode ser membro de mais de um (com função diferente em cada), e a app mostra um seletor de unidade. Não há uma "organização" acima do estabelecimento no MVP.
+  - *Porquê:* com contratação e cobrança por CNPJ, uma camada de organização não teria função no MVP e só tornaria a RLS mais complexa.
+  - *Saída futura:* se surgir a necessidade de um painel consolidado de rede, acrescenta-se uma tabela `groups` opcional que **agrupa** estabelecimentos para leitura, sem mudar a fronteira de isolamento.
 - O **tipo** (motel, hotel, outro) é um atributo do estabelecimento. Só serve para escolher o **modelo inicial** de configuração. O código não tem ramificações por tipo.
 
 **Garantias de isolamento**
@@ -108,6 +111,7 @@ Confirmo a stack que a ZMOLAK já usa. Ela atende a todos os requisitos sem adic
 2. **Chaves estrangeiras compostas** `(establishment_id, id)`: é impossível, ao nível do banco, ligar uma ocorrência a um local ou equipamento de outro estabelecimento, mesmo com um bug na aplicação.
 3. A `service_role` só é usada no servidor, em operações delimitadas (pareamento de TV, provisionamento). Nunca chega ao cliente.
 4. O administrador da plataforma (ZMOLAK) fica numa tabela separada (`platform_admins`) e não recebe acesso através das políticas dos clientes.
+5. Pertencer a dois estabelecimentos não dá acesso cruzado: cada consulta é sempre filtrada pela membership do estabelecimento em causa.
 
 ### 2.2 Modelo de dados
 
@@ -115,13 +119,10 @@ O briefing lista muitas entidades possíveis. Só proponho as que o MVP usa, e v
 
 ```mermaid
 erDiagram
-  organizations ||--o{ establishments : possui
-  organizations ||--o{ roles : define
-  organizations ||--o{ memberships : tem
+  establishments ||--o{ roles : define
+  establishments ||--o{ memberships : tem
   profiles ||--o{ memberships : participa
   roles ||--o{ memberships : atribui
-  memberships ||--o{ membership_establishments : "acesso a"
-  establishments ||--o{ membership_establishments : ""
   establishments ||--o{ location_types : configura
   establishments ||--o{ locations : contém
   locations ||--o{ locations : "pai de"
@@ -142,12 +143,10 @@ erDiagram
 
 | Tabela | Função | Campos-chave |
 |---|---|---|
-| `organizations` | Cliente comercial | nome, estado |
-| `establishments` | Motel ou hotel | org, nome, `kind` (motel/hotel/other), fuso horário, logo, cor de identificação, `sla_hours` por prioridade, próximo número de OS |
+| `establishments` | **Cliente**: um motel ou hotel | nome, razão social, CNPJ, `kind` (motel/hotel/other), estado da conta, fuso horário, logo, cor de identificação, `sla_hours` por prioridade, próximo número de OS |
 | `profiles` | Dados do utilizador (1:1 com `auth.users`) | nome, telefone (opcional) |
-| `roles` | Função por organização | nome, `permissions text[]` (catálogo fixo), `is_system` |
-| `memberships` | Utilizador ↔ organização | org, user, role, estado (convidado/ativo/suspenso), `all_establishments bool` |
-| `membership_establishments` | Restringe o acesso a estabelecimentos específicos | membership, establishment |
+| `roles` | Função por estabelecimento | nome, `permissions text[]` (catálogo fixo), `is_system` |
+| `memberships` | Utilizador ↔ estabelecimento | establishment, user, role, estado (convidado/ativo/suspenso) |
 | `location_types` | Vocabulário do estabelecimento | nome ("Suíte", "Quarto", "Andar", "Área técnica"…) |
 | `locations` | **Árvore única** de setores e espaços | parent_id, tipo, nome, código, `sector_id` (raiz materializada), ativo |
 | `categories` | Categorias de manutenção (também usadas em equipamentos) | nome, ícone, ativo |
@@ -183,33 +182,35 @@ erDiagram
 
 Catálogo fixo (verificado **no banco** por RLS e funções, e repetido na interface só para esconder ações):
 
-| Permissão | Proprietário | Gestor | Supervisor | Técnico | Solicitante |
-|---|:-:|:-:|:-:|:-:|:-:|
-| `org.manage` (estabelecimentos, plano) | ✓ | | | | |
-| `members.manage` (convites, funções) | ✓ | ✓ | | | |
-| `settings.manage` (locais, categorias, SLA) | ✓ | ✓ | | | |
-| `assets.manage` | ✓ | ✓ | ✓ | | |
-| `work_orders.create` | ✓ | ✓ | ✓ | ✓ | ✓ |
-| `work_orders.read_all` | ✓ | ✓ | ✓ | ✓ (D2) | só as próprias |
-| `work_orders.assign` | ✓ | ✓ | ✓ | | |
-| `work_orders.manage` (editar qualquer uma, cancelar) | ✓ | ✓ | ✓ | | |
-| `work_orders.execute` (iniciar, pausar, concluir as **suas**) | ✓ | ✓ | ✓ | ✓ | |
-| `costs.read` / `costs.write` | ✓ | ✓ | ✓ / ✓ | — / ✓ (só na própria OS) | |
-| `preventive.manage` | ✓ | ✓ | ✓ | | |
-| `displays.manage` | ✓ | ✓ | | | |
-| `dashboard.read` | ✓ | ✓ | ✓ | | |
-| `audit.read` | ✓ | ✓ | | | |
+Só gestão e equipe de manutenção usam o sistema (D3).
 
-- O acesso é sempre **permissão × estabelecimento**: uma membership restrita só vê os estabelecimentos listados.
+| Permissão | Proprietário | Gestor | Supervisor | Técnico |
+|---|:-:|:-:|:-:|:-:|
+| `establishment.manage` (dados do estabelecimento, plano) | ✓ | | | |
+| `members.manage` (convites, funções) | ✓ | ✓ | | |
+| `settings.manage` (locais, categorias, SLA) | ✓ | ✓ | | |
+| `assets.manage` | ✓ | ✓ | ✓ | |
+| `work_orders.create` | ✓ | ✓ | ✓ | ✓ |
+| `work_orders.read_all` | ✓ | ✓ | ✓ | ✓ (D2) |
+| `work_orders.assign` | ✓ | ✓ | ✓ | |
+| `work_orders.manage` (editar qualquer uma, cancelar) | ✓ | ✓ | ✓ | |
+| `work_orders.execute` (iniciar, pausar, concluir as **suas**) | ✓ | ✓ | ✓ | ✓ |
+| `costs.read` / `costs.write` | ✓ | ✓ | ✓ / ✓ | — / ✓ (só na própria OS) |
+| `preventive.manage` | ✓ | ✓ | ✓ | |
+| `displays.manage` | ✓ | ✓ | | |
+| `dashboard.read` | ✓ | ✓ | ✓ | |
+| `audit.read` | ✓ | ✓ | | |
+
+- O acesso é sempre **permissão × estabelecimento**: a mesma pessoa pode ser Gestor numa unidade e não ter acesso a outra.
 - Mutações passam por **Server Actions → validação Zod → função SQL ou insert sujeito a RLS**. A interface nunca é a única barreira.
-- Separação entre plataforma e cliente: o admin ZMOLAK não é membro das organizações. Suporte a clientes, quando necessário, será feito por um mecanismo explícito e auditado (fora do MVP).
+- Separação entre plataforma e cliente: o admin ZMOLAK não é membro dos estabelecimentos. Suporte a clientes, quando necessário, será feito por um mecanismo explícito e auditado (fora do MVP).
 
 ### 2.4 Auditoria
 
-- `audit_events` é **append-only**: `id bigint`, `organization_id`, `establishment_id`, `actor_type` (user/system/device/platform), `actor_id`, `action` (ex.: `work_order.status_changed`), `entity_type`, `entity_id`, `before jsonb`, `after jsonb`, `changed_fields text[]`, `origin` (web/cron/api), `created_at`.
+- `audit_events` é **append-only**: `id bigint`, `establishment_id`, `actor_type` (user/system/device/platform), `actor_id`, `action` (ex.: `work_order.status_changed`), `entity_type`, `entity_id`, `before jsonb`, `after jsonb`, `changed_fields text[]`, `origin` (web/cron/api), `created_at`.
 - Gravada por **triggers genéricos** nas tabelas auditadas (sem depender de a aplicação lembrar de gravar). Colunas sensíveis entram numa lista de exclusão.
 - **Nenhum papel** tem `UPDATE` ou `DELETE` na tabela (privilégios revogados, nenhuma política de escrita). Correções viram novos eventos.
-- Leitura pelos clientes: só quem tem `audit.read`, e só da sua organização.
+- Leitura pelos clientes: só quem tem `audit.read`, e só do seu estabelecimento.
 - **Logs técnicos e de segurança ficam separados:** tentativas de login ficam nos logs do Supabase Auth, erros da aplicação nos logs da Vercel. Não se misturam com a auditoria operacional.
 - **LGPD:** só nome, e-mail e telefone opcional. Na remoção de um utilizador, o perfil é anonimizado e os eventos mantêm só o UUID. Retenção proposta em D9.
 
@@ -245,7 +246,7 @@ Catálogo fixo (verificado **no banco** por RLS e funções, e repetido na inter
 - **Faixa de indicadores:** Críticas · Atrasadas · Em andamento · Pendentes.
 - **Zona "Urgente"** (esquerda, fixa): críticas e atrasadas **nunca saem do ecrã por rotação**. Se não couberem, mostram "+N" de forma bem visível.
 - **Zona rotativa** (direita): restantes pendentes e em andamento, em páginas de 6–8 cartões, a cada 12 s, com indicador "2/4".
-- Ordenação: prioridade, depois atraso, depois idade. Cada cartão mostra local (grande), título, prioridade (barras `/ // ///` + cor + rótulo), estado, responsável e tempo decorrido ("há 3 h").
+- Ordenação: prioridade, depois atraso, depois idade. Cada cartão mostra local (grande), título, prioridade (ícone de nível + cor + rótulo), estado, responsável e tempo decorrido ("há 3 h").
 - Estado vazio positivo: "Sem pendências críticas".
 
 **Configuração** (`displays.config`, com predefinições sensatas que dispensam configurar): locais ou setores incluídos, prioridades, estados, campos visíveis, layout (`urgent+rotation` | `list` | `by_sector`), tempo de rotação e se mostra a identificação do estabelecimento.
@@ -263,7 +264,7 @@ O *build* do painel terá como alvo Chromium ≥ 87 e será testado com um perfi
 ### 2.6 Fluxos principais
 
 **Motel — banheira com fuga na Suíte 12**
-1. A recepcionista (Solicitante) abre *Nova ocorrência* no telemóvel, procura "12", tira uma foto e escolhe a categoria "Hidráulica". A prioridade vem sugerida como *Alta* e ela confirma. Leva menos de 30 s.
+1. O técnico Pedro, numa ronda, abre *Nova ocorrência* no celular, procura "12", tira uma foto e escolhe a categoria "Hidráulica". A prioridade vem sugerida como *Alta* e ele confirma. Leva menos de 30 s. (Se o problema chegar à gestão por outro canal, o gestor ou supervisor registra da mesma forma.)
 2. A ocorrência aparece imediatamente na TV, na zona de pendentes.
 3. O supervisor atribui ao técnico João. Na TV aparece "Atribuída · João".
 4. João abre *Minhas tarefas* e toca em *Iniciar*. Depois, *Aguardando material* ("vedação encomendada").
@@ -303,12 +304,11 @@ O *build* do painel terá como alvo Chromium ≥ 87 e será testado com um perfi
 |---|---|---|
 | **Gestão** (Gestor/Proprietário) | Dashboard: indicadores, críticas, atrasadas, preventivas próximas, carga por responsável, tempo médio de resolução (só com amostra suficiente; caso contrário, "Dados insuficientes") | Filtrar por período, setor, prioridade, estado e responsável. Abrir qualquer OS. |
 | **Supervisor** | Fila de triagem: *Pendentes sem responsável* no topo, depois atrasadas | Atribuir ou reatribuir com um toque. Ajustar prioridade e prazo. Cancelar com motivo. |
-| **Técnico** | *Minhas tarefas* (telemóvel): cartões grandes ordenados por urgência | Iniciar, Pausar, Aguardando material, Concluir (resumo, foto, materiais). Abrir nova ocorrência. |
-| **Solicitante** | *Reportar problema* + *Minhas ocorrências* | Abrir ocorrência em menos de 30 s e acompanhar o estado. |
+| **Técnico** | *Minhas tarefas* (celular): cartões grandes ordenados por urgência | Iniciar, Pausar, Aguardando material, Concluir (resumo, foto, materiais). Abrir nova ocorrência em menos de 30 s. |
 | **Admin do estabelecimento** | Configurações | Árvore de locais, categorias, SLAs, convites, funções, painéis de TV, pareamento e revogação de TVs. |
 | **TV** | Painel | Só visualização. |
 
-Toda a app é **responsiva**. Técnico e Solicitante são pensados primeiro para telemóvel; Gestão e Admin para computador, mas funcionam no telemóvel.
+Toda a app é **responsiva**. Técnico e Supervisor são pensados primeiro para celular; Gestão e Admin para computador, mas funcionam no telemóvel.
 
 ### 3.3 Uma interface para motel e hotel
 
@@ -327,7 +327,7 @@ Cada etapa termina com algo verificável. Só avanço com a etapa anterior valid
 | # | Etapa | Entregável | Verificação |
 |---|---|---|---|
 | 1 | **Fundação** | Next.js + TS strict + Tailwind com *tokens* ZMOLAK, Supabase CLI e migrações versionadas no repositório, CI (lint, typecheck, testes), deploy de preview na Vercel, `brand.ts` | Build e CI verdes; página de componentes base em claro e escuro |
-| 2 | **Tenancy, auth e permissões** | `organizations`, `establishments`, `profiles`, `roles`, `memberships`, funções `app.has_permission`, **infraestrutura de auditoria** (trigger genérico), login, recuperação, convites, script de provisionamento do piloto | **pgTAP:** utilizador A não lê nem escreve dados de B (tabelas, RPC e REST direto); convite expira; auditoria imutável |
+| 2 | **Tenancy, auth e permissões** | `establishments`, `profiles`, `roles`, `memberships`, seletor de unidade, funções `app.has_permission`, **infraestrutura de auditoria** (trigger genérico), login, recuperação, convites, script de provisionamento do piloto | **pgTAP:** utilizador A não lê nem escreve dados de B (tabelas, RPC e REST direto); convite expira; auditoria imutável |
 | 3 | **Estrutura operacional** | Tipos de local, árvore de locais, categorias, equipamentos, modelos Motel/Hotel, telas de configuração | FK composta impede referência entre estabelecimentos; testes de permissão por função |
 | 4 | **Ocorrências / OS** | Formulário mobile, lista com filtros, detalhe, máquina de estados, atribuição, comentários, materiais e custos, **fotos** (storage privado, remoção de EXIF, URL assinada) | Transições inválidas recusadas no banco; técnico não altera OS alheia; anexo de outro tenant inacessível mesmo conhecendo o caminho |
 | 5 | **Dashboard** | Indicadores com dados reais e filtros; estados vazios honestos | Números conferidos com consultas SQL de referência |
@@ -344,7 +344,7 @@ Mudança em relação à ordem sugerida: a **infraestrutura de auditoria entra n
 
 - Fluxos principais completos de ponta a ponta no telemóvel e no computador.
 - Matriz de permissões testada por função, na UI **e** por chamada direta à API.
-- Isolamento entre dois estabelecimentos de organizações diferentes: tabelas, RPC, Storage e *feed* da TV.
+- Isolamento entre estabelecimentos, inclusive para um utilizador que é membro de dois deles: tabelas, RPC, Storage e *feed* da TV.
 - TV em 1080p e 4K, com 0, 5 e 60 ocorrências; queda e retorno da rede; token revogado.
 - Estados vazios e de erro em todas as telas; mensagens sem detalhes internos.
 - Limitações e decisões pendentes documentadas em `docs/`.
