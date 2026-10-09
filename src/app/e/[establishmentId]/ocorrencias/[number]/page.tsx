@@ -130,7 +130,7 @@ async function WorkOrder({ params }: Pick<PageProps<"/e/[establishmentId]/ocorre
         <dd>{wo.assignee_id ? nameOf(wo.assignee_id) : "Sem responsável"}</dd>
         <dt className="text-muted">Aberta por</dt>
         <dd>
-          {nameOf(wo.reported_by)} · {dateTime.format(new Date(wo.opened_at))}
+          {wo.source === "preventive" ? "Plano preventivo" : nameOf(wo.reported_by)} · {dateTime.format(new Date(wo.opened_at))}
         </dd>
         <dt className="text-muted">Prazo</dt>
         <dd className={overdue ? "font-semibold text-overdue" : undefined}>{dueAt ? dateTime.format(dueAt) : "Sem prazo"}</dd>

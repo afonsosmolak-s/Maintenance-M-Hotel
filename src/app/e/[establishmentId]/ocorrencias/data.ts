@@ -31,7 +31,8 @@ export type WorkOrderSummary = {
   priority: WorkOrderPriority;
   locationId: string;
   assigneeId: string | null;
-  reportedBy: string;
+  reportedBy: string | null;
+  preventive: boolean;
   openedAt: Date;
   dueAt: Date | null;
   completedAt: Date | null;
@@ -59,7 +60,7 @@ export async function loadWorkOrders(
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("work_orders")
-    .select("id, number, title, status, priority, location_id, assignee_id, reported_by, opened_at, due_at, completed_at")
+    .select("id, number, title, status, priority, source, location_id, assignee_id, reported_by, opened_at, due_at, completed_at")
     .eq("establishment_id", establishmentId);
 
   const open = ["pending", "assigned", "in_progress", "on_hold"];
@@ -103,6 +104,7 @@ export async function loadWorkOrders(
         locationId: w.location_id,
         assigneeId: w.assignee_id,
         reportedBy: w.reported_by,
+        preventive: w.source === "preventive",
         openedAt: new Date(w.opened_at),
         dueAt,
         completedAt: w.completed_at ? new Date(w.completed_at) : null,

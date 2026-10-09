@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { PriorityIndicator } from "@/components/work-orders/indicators";
 import { requireEstablishment } from "@/lib/auth/session";
-import { formatHours, MIN_SAMPLE_FOR_AVERAGES, resolvePeriod } from "@/lib/domain/dashboard";
+import { formatHours, localDate, MIN_SAMPLE_FOR_AVERAGES, resolvePeriod } from "@/lib/domain/dashboard";
 import {
   isWorkOrderPriority,
   isWorkOrderStatus,
@@ -73,7 +73,9 @@ async function Dashboard({ params, searchParams }: PageProps<"/e/[establishmentI
   const assignee = pick("responsavel");
 
   const supabase = await createSupabaseServerClient();
-  const [{ data, error }, { locations, paths }, team] = await Promise.all([
+  const now = new Date();
+  const in14 = localDate(new Date(now.getTime() + 14 * 86_400_000));
+  const [{ data, error }, { locations, paths }, team, upcomingPlans, overduePreventive] = await Promise.all([
     supabase.rpc("dashboard_metrics", {
       p_establishment_id: establishmentId,
       p_from: period.from,
@@ -85,6 +87,19 @@ async function Dashboard({ params, searchParams }: PageProps<"/e/[establishmentI
     }),
     loadStructure(establishmentId),
     loadTeam(establishmentId),
+    supabase
+      .from("preventive_plans")
+      .select("id", { count: "exact", head: true })
+      .eq("establishment_id", establishmentId)
+      .eq("active", true)
+      .lte("next_due_on", in14),
+    supabase
+      .from("work_orders")
+      .select("id", { count: "exact", head: true })
+      .eq("establishment_id", establishmentId)
+      .eq("source", "preventive")
+      .in("status", ["pending", "assigned", "in_progress", "on_hold"])
+      .lt("due_at", now.toISOString()),
   ]);
   if (error || !data) throw new Error("Não foi possível calcular os indicadores.");
   const m = data as unknown as Metrics;
@@ -168,6 +183,26 @@ async function Dashboard({ params, searchParams }: PageProps<"/e/[establishmentI
           <StatTile label="Aguardando material" value={m.now.on_hold} href={list} />
           <StatTile label="Sem responsável" value={m.now.unassigned} href={`${list}?vista=sem-responsavel`} />
         </StatGrid>
+      </section>
+
+      <section className="flex flex-col gap-4" aria-labelledby="preventivas">
+        <h2 id="preventivas" className={sectionTitle}>
+          Preventivas
+        </h2>
+        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-control)] border border-line bg-line sm:max-w-md">
+          <StatTile
+            label="Vencem em até 14 dias"
+            value={upcomingPlans.count ?? 0}
+            hint={`Planos ativos até ${shortDate(in14)}`}
+            href={`/e/${establishmentId}/preventivas`}
+          />
+          <StatTile
+            label="Preventivas atrasadas"
+            value={overduePreventive.count ?? 0}
+            tone={overduePreventive.count ? "overdue" : undefined}
+            href={`${list}?vista=atrasadas`}
+          />
+        </div>
       </section>
 
       <section className="flex flex-col gap-4" aria-labelledby="periodo">

@@ -568,7 +568,8 @@ export type Database = {
           priority: string
           status: string
           source: string
-          reported_by: string
+          reported_by: string | null
+          preventive_plan_id: string | null
           assignee_id: string | null
           due_at: string | null
           opened_at: string
@@ -594,7 +595,8 @@ export type Database = {
           priority: string
           status?: string
           source?: string
-          reported_by: string
+          reported_by?: string | null
+          preventive_plan_id?: string | null
           assignee_id?: string | null
           due_at?: string | null
           opened_at?: string
@@ -620,7 +622,8 @@ export type Database = {
           priority?: string
           status?: string
           source?: string
-          reported_by?: string
+          reported_by?: string | null
+          preventive_plan_id?: string | null
           assignee_id?: string | null
           due_at?: string | null
           opened_at?: string
@@ -636,11 +639,72 @@ export type Database = {
         }
         Relationships: []
       }
+      preventive_plans: {
+        Row: {
+          id: string
+          establishment_id: string
+          title: string
+          description: string | null
+          location_id: string
+          asset_id: string | null
+          category_id: string | null
+          priority: string
+          assignee_id: string | null
+          interval_unit: string
+          interval_count: number
+          next_due_on: string
+          lead_days: number
+          active: boolean
+          last_generated_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          title: string
+          description?: string | null
+          location_id: string
+          asset_id?: string | null
+          category_id?: string | null
+          priority?: string
+          assignee_id?: string | null
+          interval_unit: string
+          interval_count: number
+          next_due_on: string
+          lead_days?: number
+          active?: boolean
+          last_generated_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          title?: string
+          description?: string | null
+          location_id?: string
+          asset_id?: string | null
+          category_id?: string | null
+          priority?: string
+          assignee_id?: string | null
+          interval_unit?: string
+          interval_count?: number
+          next_due_on?: string
+          lead_days?: number
+          active?: boolean
+          last_generated_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      run_preventive_generation: { Args: { p_establishment_id: string }; Returns: number }
       dashboard_metrics: {
         Args: {
           p_assignee_id?: string | null

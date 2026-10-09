@@ -58,6 +58,7 @@ async function Home({ params }: Pick<PageProps<"/e/[establishmentId]">, "params"
           openedAt: w.openedAt,
           locationLabel: paths.get(w.locationId) ?? "",
           assigneeName: w.assigneeId ? names.get(w.assigneeId) : undefined,
+          preventive: w.preventive,
         }}
       />
     </li>
