@@ -15,6 +15,216 @@ export type Database = {
   }
   public: {
     Tables: {
+      assets: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          establishment_id: string
+          id: string
+          installed_on: string | null
+          internal_code: string | null
+          location_id: string
+          manufacturer: string | null
+          model: string | null
+          name: string
+          notes: string | null
+          operational_status: string
+          updated_at: string
+          warranty_until: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          establishment_id: string
+          id?: string
+          installed_on?: string | null
+          internal_code?: string | null
+          location_id: string
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          notes?: string | null
+          operational_status?: string
+          updated_at?: string
+          warranty_until?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          establishment_id?: string
+          id?: string
+          installed_on?: string | null
+          internal_code?: string | null
+          location_id?: string
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          notes?: string | null
+          operational_status?: string
+          updated_at?: string
+          warranty_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_establishment_id_category_id_fkey"
+            columns: ["establishment_id", "category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["establishment_id", "id"]
+          },
+          {
+            foreignKeyName: "assets_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_establishment_id_location_id_fkey"
+            columns: ["establishment_id", "location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["establishment_id", "id"]
+          },
+        ]
+      }
+      categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          establishment_id: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          establishment_id: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          establishment_id?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      location_types: {
+        Row: {
+          created_at: string
+          establishment_id: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          establishment_id: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          establishment_id?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "location_types_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          active: boolean
+          code: string | null
+          created_at: string
+          establishment_id: string
+          id: string
+          location_type_id: string | null
+          name: string
+          parent_id: string | null
+          sector_id: string | null
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code?: string | null
+          created_at?: string
+          establishment_id: string
+          id?: string
+          location_type_id?: string | null
+          name: string
+          parent_id?: string | null
+          sector_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string | null
+          created_at?: string
+          establishment_id?: string
+          id?: string
+          location_type_id?: string | null
+          name?: string
+          parent_id?: string | null
+          sector_id?: string | null
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locations_establishment_id_location_type_id_fkey"
+            columns: ["establishment_id", "location_type_id"]
+            isOneToOne: false
+            referencedRelation: "location_types"
+            referencedColumns: ["establishment_id", "id"]
+          },
+          {
+            foreignKeyName: "locations_establishment_id_parent_id_fkey"
+            columns: ["establishment_id", "parent_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["establishment_id", "id"]
+          },
+        ]
+      }
       audit_events: {
         Row: {
           action: string
@@ -260,6 +470,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      apply_establishment_template: {
+        Args: { p_establishment_id: string; p_template: string }
+        Returns: undefined
       }
       create_establishment: {
         Args: {

@@ -40,14 +40,24 @@ async function EstablishmentNav({ params }: Pick<LayoutProps<"/e/[establishmentI
           <span className="text-xs text-muted">{establishment.roleName}</span>
         )}
       </span>
-      <Link href={base} className="text-muted hover:text-ink">
-        Início
-      </Link>
-      {can("members.manage") ? (
-        <Link href={`${base}/equipe`} className="text-muted hover:text-ink">
-          Equipe
+      <div className="flex items-center gap-5 overflow-x-auto whitespace-nowrap">
+        <Link href={base} className="text-muted hover:text-ink">
+          Início
         </Link>
-      ) : null}
+        <Link href={`${base}/equipamentos`} className="text-muted hover:text-ink">
+          Equipamentos
+        </Link>
+        {can("members.manage") ? (
+          <Link href={`${base}/equipe`} className="text-muted hover:text-ink">
+            Equipe
+          </Link>
+        ) : null}
+        {can("settings.manage") ? (
+          <Link href={`${base}/configuracoes`} className="text-muted hover:text-ink">
+            Configurações
+          </Link>
+        ) : null}
+      </div>
     </nav>
   );
 }

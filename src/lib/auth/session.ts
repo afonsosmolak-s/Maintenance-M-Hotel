@@ -1,18 +1,19 @@
 import "server-only";
 import { notFound, redirect } from "next/navigation";
+import { cache } from "react";
 import { isPermission, type Permission } from "@/lib/domain/permissions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type CurrentUser = { id: string; email: string; aal: string };
 
-/** Utilizador da sessão atual, ou null. A assinatura do token é verificada. */
-export async function getCurrentUser(): Promise<CurrentUser | null> {
+/** Utilizador da sessão atual, ou null. A assinatura do token é verificada. Uma leitura por pedido. */
+export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const supabase = await createSupabaseServerClient();
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
   if (!claims?.sub) return null;
   return { id: claims.sub, email: String(claims.email ?? ""), aal: String(claims.aal ?? "aal1") };
-}
+});
 
 export async function requireUser(): Promise<CurrentUser> {
   const user = await getCurrentUser();
@@ -31,7 +32,8 @@ export type MyEstablishment = {
   permissions: ReadonlySet<Permission>;
 };
 
-export async function getMyEstablishments(): Promise<MyEstablishment[]> {
+/** Estabelecimentos do utilizador. Uma leitura por pedido (layout e página partilham). */
+export const getMyEstablishments = cache(async (): Promise<MyEstablishment[]> => {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("my_establishments");
   if (error) throw new Error("Não foi possível carregar os estabelecimentos.");
@@ -45,7 +47,7 @@ export async function getMyEstablishments(): Promise<MyEstablishment[]> {
     blocked: row.establishment_status !== "active" || row.membership_status !== "active",
     permissions: new Set(row.permissions.filter(isPermission)),
   }));
-}
+});
 
 /**
  * Contexto de um estabelecimento para as páginas em /e/[id].

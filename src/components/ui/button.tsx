@@ -19,18 +19,16 @@ const sizes: Record<Size, string> = {
 
 type ButtonProps = ComponentProps<"button"> & { variant?: Variant; size?: Size };
 
-export function Button({ variant = "primary", size = "md", className, type = "button", ...props }: ButtonProps) {
-  return (
-    <button
-      type={type}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] border font-semibold",
-        "transition-colors duration-150 ease-[var(--ease-brand)] disabled:pointer-events-none disabled:opacity-40",
-        variants[variant],
-        sizes[size],
-        className,
-      )}
-      {...props}
-    />
+/** Classes do botão, também para links que se apresentam como botão. */
+export function buttonClasses({ variant = "primary", size = "md" }: { variant?: Variant; size?: Size } = {}) {
+  return cn(
+    "inline-flex items-center justify-center gap-2 rounded-[var(--radius-control)] border font-semibold",
+    "transition-colors duration-150 ease-[var(--ease-brand)] disabled:pointer-events-none disabled:opacity-40",
+    variants[variant],
+    sizes[size],
   );
+}
+
+export function Button({ variant = "primary", size = "md", className, type = "button", ...props }: ButtonProps) {
+  return <button type={type} className={cn(buttonClasses({ variant, size }), className)} {...props} />;
 }

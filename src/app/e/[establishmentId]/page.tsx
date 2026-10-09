@@ -21,7 +21,7 @@ async function Home({ params }: Pick<PageProps<"/e/[establishmentId]">, "params"
       </h1>
       <p className="max-w-[56ch] text-sm text-muted">
         As ocorrências, o painel de gestão e a manutenção preventiva chegam nas próximas etapas. Por enquanto, a
-        gestão pode montar a equipe e os cargos.
+        gestão pode montar a equipe, cadastrar os locais e categorias em Configurações e registrar os equipamentos.
       </p>
     </section>
   );
