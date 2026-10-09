@@ -9,6 +9,8 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { requireEstablishment } from "@/lib/auth/session";
 import { ASSET_STATUS_LABELS, isAssetStatus, isUnderWarranty } from "@/lib/domain/assets";
 import { buildLocationTree, flattenTree } from "@/lib/domain/locations";
+import { isWorkOrderStatus } from "@/lib/domain/work-orders";
+import { StatusBadge } from "@/components/work-orders/indicators";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loadStructure } from "../../configuracoes/data";
 import { deleteAsset, saveAsset } from "../actions";
@@ -17,6 +19,7 @@ import { AssetFields } from "../asset-fields";
 export const metadata: Metadata = { title: "Equipamento" };
 
 const dateFormat = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "UTC" });
+const dateTimeFormat = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeZone: "America/Sao_Paulo" });
 
 export default function AssetPage({ params }: PageProps<"/e/[establishmentId]/equipamentos/[assetId]">) {
   return (
@@ -40,8 +43,44 @@ async function Asset({ params }: Pick<PageProps<"/e/[establishmentId]/equipament
     .maybeSingle();
   if (!asset) notFound();
 
-  const { locations, categories, paths } = await loadStructure(establishmentId);
+  const [{ locations, categories, paths }, { data: history }] = await Promise.all([
+    loadStructure(establishmentId),
+    supabase
+      .from("work_orders")
+      .select("id, number, title, status, opened_at, completed_at")
+      .eq("establishment_id", establishmentId)
+      .eq("asset_id", assetId)
+      .order("opened_at", { ascending: false })
+      .limit(30),
+  ]);
   const today = new Date().toISOString().slice(0, 10);
+  const woBase = `/e/${establishmentId}/ocorrencias`;
+  const historySection = (
+    <section className="flex max-w-4xl flex-col gap-3" aria-labelledby="historico">
+      <h2 id="historico" className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+        Histórico de intervenções ({history?.length ?? 0})
+      </h2>
+      {history?.length ? (
+        <ul className="flex flex-col divide-y divide-line border-y border-line text-sm">
+          {history.map((w) => (
+            <li key={w.id}>
+              <Link href={`${woBase}/${w.number}`} className="flex flex-wrap items-center justify-between gap-2 py-3 hover:bg-surface">
+                <span>
+                  <span className="text-muted">#{String(w.number).padStart(4, "0")}</span> {w.title}
+                </span>
+                <span className="flex items-center gap-3 text-xs text-muted">
+                  {isWorkOrderStatus(w.status) ? <StatusBadge status={w.status} /> : null}
+                  {dateTimeFormat.format(new Date(w.opened_at))}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted">Nenhuma ocorrência ligada a este equipamento.</p>
+      )}
+    </section>
+  );
   const back = `/e/${establishmentId}/equipamentos`;
 
   const header = (
@@ -92,6 +131,7 @@ async function Asset({ params }: Pick<PageProps<"/e/[establishmentId]/equipament
             </>
           ) : null}
         </dl>
+        {historySection}
       </div>
     );
   }
@@ -111,11 +151,8 @@ async function Asset({ params }: Pick<PageProps<"/e/[establishmentId]/equipament
           <SubmitButton pendingLabel="Guardando…">Guardar alterações</SubmitButton>
         </div>
       </ActionForm>
+      {historySection}
       <section className="flex max-w-4xl flex-col gap-3 border-t border-line pt-6">
-        <p className="text-sm text-muted">
-          O histórico de intervenções e os custos deste equipamento aparecem aqui quando as ordens de serviço estiverem
-          disponíveis.
-        </p>
         <ActionForm action={deleteAsset.bind(null, establishmentId)}>
           <input type="hidden" name="id" value={asset.id} />
           <ConfirmButton variant="ghost" size="sm" className="self-start text-critical" confirmText={`Excluir ${asset.name}?`}>

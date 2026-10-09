@@ -28,10 +28,13 @@ export function isClosed(status: WorkOrderStatus): boolean {
   return CLOSED_STATUSES.includes(status);
 }
 
-/** Transições permitidas. A mesma tabela será aplicada no banco (função de transição). */
+/**
+ * Transições de trabalho (public.transition_work_order, que é quem as aplica).
+ * Pendente ↔ Atribuída muda pela atribuição (public.assign_work_order), não por aqui.
+ */
 export const STATUS_TRANSITIONS: Record<WorkOrderStatus, readonly WorkOrderStatus[]> = {
-  pending: ["assigned", "in_progress", "cancelled"],
-  assigned: ["pending", "in_progress", "cancelled"],
+  pending: ["in_progress", "cancelled"],
+  assigned: ["in_progress", "cancelled"],
   in_progress: ["on_hold", "done", "cancelled"],
   on_hold: ["in_progress", "cancelled"],
   done: [],
@@ -77,4 +80,28 @@ export function formatElapsed(since: Date, now: Date): string {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `há ${hours} h`;
   return `há ${Math.floor(hours / 24)} d`;
+}
+
+export function isWorkOrderStatus(value: string): value is WorkOrderStatus {
+  return (WORK_ORDER_STATUSES as readonly string[]).includes(value);
+}
+
+export function isWorkOrderPriority(value: string): value is WorkOrderPriority {
+  return (WORK_ORDER_PRIORITIES as readonly string[]).includes(value);
+}
+
+/** Ordem de urgência para listas e TV: prioridade, depois atrasadas, depois prazo mais próximo, depois mais antigas. */
+export function compareByUrgency(
+  a: { priority: WorkOrderPriority; status: WorkOrderStatus; dueAt: Date | null; openedAt: Date },
+  b: { priority: WorkOrderPriority; status: WorkOrderStatus; dueAt: Date | null; openedAt: Date },
+  now: Date,
+): number {
+  const byPriority = PRIORITY_LEVEL[b.priority] - PRIORITY_LEVEL[a.priority];
+  if (byPriority !== 0) return byPriority;
+  const byOverdue = Number(isOverdue(b, now)) - Number(isOverdue(a, now));
+  if (byOverdue !== 0) return byOverdue;
+  const dueA = a.dueAt?.getTime() ?? Number.POSITIVE_INFINITY;
+  const dueB = b.dueAt?.getTime() ?? Number.POSITIVE_INFINITY;
+  if (dueA !== dueB) return dueA - dueB;
+  return a.openedAt.getTime() - b.openedAt.getTime();
 }

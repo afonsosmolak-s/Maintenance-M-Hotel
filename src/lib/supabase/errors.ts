@@ -12,6 +12,8 @@ export function friendlyDbError(error: Pick<PostgrestError, "code" | "message"> 
       return error.message.startsWith("new row violates") ? "Sem permissão para esta ação." : error.message;
     case "23514":
       return error.message.startsWith("new row") ? "Dados inválidos." : error.message;
+    case "P0002":
+      return error.message;
     case "23505":
       return "Este registo já existe.";
     case "23503":

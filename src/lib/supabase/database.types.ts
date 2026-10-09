@@ -292,6 +292,7 @@ export type Database = {
           status: string
           timezone: string
           updated_at: string
+          work_order_seq: number
         }
         Insert: {
           accent_color?: string | null
@@ -458,11 +459,250 @@ export type Database = {
           },
         ]
       }
+      attachments: {
+        Row: {
+          id: string
+          establishment_id: string
+          work_order_id: string
+          phase: string
+          storage_path: string
+          content_type: string
+          size_bytes: number
+          uploaded_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          work_order_id: string
+          phase?: string
+          storage_path: string
+          content_type: string
+          size_bytes: number
+          uploaded_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          work_order_id?: string
+          phase?: string
+          storage_path?: string
+          content_type?: string
+          size_bytes?: number
+          uploaded_by?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      work_order_comments: {
+        Row: {
+          id: string
+          establishment_id: string
+          work_order_id: string
+          author_id: string
+          body: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          work_order_id: string
+          author_id: string
+          body: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          work_order_id?: string
+          author_id?: string
+          body?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      work_order_items: {
+        Row: {
+          id: string
+          establishment_id: string
+          work_order_id: string
+          description: string
+          quantity: number
+          unit_cost: number | null
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          work_order_id: string
+          description: string
+          quantity?: number
+          unit_cost?: number | null
+          created_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          work_order_id?: string
+          description?: string
+          quantity?: number
+          unit_cost?: number | null
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      work_orders: {
+        Row: {
+          id: string
+          establishment_id: string
+          number: number
+          title: string
+          description: string | null
+          location_id: string
+          asset_id: string | null
+          category_id: string | null
+          priority: string
+          status: string
+          source: string
+          reported_by: string
+          assignee_id: string | null
+          due_at: string | null
+          opened_at: string
+          started_at: string | null
+          completed_at: string | null
+          cancelled_at: string | null
+          completion_summary: string | null
+          cancellation_reason: string | null
+          hold_reason: string | null
+          labor_cost: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          establishment_id: string
+          number: number
+          title: string
+          description?: string | null
+          location_id: string
+          asset_id?: string | null
+          category_id?: string | null
+          priority: string
+          status?: string
+          source?: string
+          reported_by: string
+          assignee_id?: string | null
+          due_at?: string | null
+          opened_at?: string
+          started_at?: string | null
+          completed_at?: string | null
+          cancelled_at?: string | null
+          completion_summary?: string | null
+          cancellation_reason?: string | null
+          hold_reason?: string | null
+          labor_cost?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          establishment_id?: string
+          number?: number
+          title?: string
+          description?: string | null
+          location_id?: string
+          asset_id?: string | null
+          category_id?: string | null
+          priority?: string
+          status?: string
+          source?: string
+          reported_by?: string
+          assignee_id?: string | null
+          due_at?: string | null
+          opened_at?: string
+          started_at?: string | null
+          completed_at?: string | null
+          cancelled_at?: string | null
+          completion_summary?: string | null
+          cancellation_reason?: string | null
+          hold_reason?: string | null
+          labor_cost?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      add_work_order_item: {
+        Args: { p_description: string; p_quantity: number; p_unit_cost: number | null; p_work_order_id: string }
+        Returns: string
+      }
+      assign_work_order: {
+        Args: { p_assignee_id: string | null; p_work_order_id: string }
+        Returns: undefined
+      }
+      create_work_order: {
+        Args: {
+          p_assignee_id: string | null
+          p_asset_id: string | null
+          p_category_id: string | null
+          p_description: string | null
+          p_establishment_id: string
+          p_location_id: string
+          p_priority: string
+          p_title: string
+        }
+        Returns: string
+      }
+      remove_work_order_item: { Args: { p_item_id: string }; Returns: undefined }
+      transition_work_order: {
+        Args: { p_labor_cost?: number | null; p_note?: string | null; p_to: string; p_work_order_id: string }
+        Returns: undefined
+      }
+      update_work_order: {
+        Args: {
+          p_asset_id: string | null
+          p_category_id: string | null
+          p_description: string | null
+          p_due_at: string | null
+          p_location_id: string
+          p_priority: string
+          p_title: string
+          p_work_order_id: string
+        }
+        Returns: undefined
+      }
+      work_order_items_for: {
+        Args: { p_work_order_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          created_by_name: string
+          description: string
+          id: string
+          quantity: number
+          unit_cost: number | null
+        }[]
+      }
+      work_order_timeline: {
+        Args: { p_work_order_id: string }
+        Returns: {
+          action: string
+          actor_name: string
+          after: Json
+          at: string
+          before: Json
+          changed_fields: string[] | null
+        }[]
+      }
       add_member: {
         Args: {
           p_establishment_id: string

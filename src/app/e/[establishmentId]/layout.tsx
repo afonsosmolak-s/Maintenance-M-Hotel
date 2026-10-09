@@ -44,6 +44,9 @@ async function EstablishmentNav({ params }: Pick<LayoutProps<"/e/[establishmentI
         <Link href={base} className="text-muted hover:text-ink">
           Início
         </Link>
+        <Link href={`${base}/ocorrencias`} className="text-muted hover:text-ink">
+          Ocorrências
+        </Link>
         <Link href={`${base}/equipamentos`} className="text-muted hover:text-ink">
           Equipamentos
         </Link>

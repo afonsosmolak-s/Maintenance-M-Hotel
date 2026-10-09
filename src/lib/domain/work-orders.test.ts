@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canTransition, formatElapsed, isOverdue } from "./work-orders";
+import { canTransition, compareByUrgency, formatElapsed, isOverdue } from "./work-orders";
 
 const now = new Date("2026-10-09T12:00:00Z");
 
@@ -21,7 +21,8 @@ describe("isOverdue", () => {
 
 describe("canTransition", () => {
   it("allows the normal flow", () => {
-    expect(canTransition("pending", "assigned")).toBe(true);
+    expect(canTransition("pending", "in_progress")).toBe(true);
+    expect(canTransition("assigned", "in_progress")).toBe(true);
     expect(canTransition("in_progress", "on_hold")).toBe(true);
     expect(canTransition("on_hold", "in_progress")).toBe(true);
     expect(canTransition("in_progress", "done")).toBe(true);
@@ -35,6 +36,11 @@ describe("canTransition", () => {
   it("requires starting before finishing", () => {
     expect(canTransition("pending", "done")).toBe(false);
   });
+
+  it("leaves pending ↔ assigned to the assignment action", () => {
+    expect(canTransition("pending", "assigned")).toBe(false);
+    expect(canTransition("assigned", "pending")).toBe(false);
+  });
 });
 
 describe("formatElapsed", () => {
@@ -45,5 +51,19 @@ describe("formatElapsed", () => {
     ["2026-10-07T10:00:00Z", "há 2 d"],
   ])("formats %s as %s", (since, expected) => {
     expect(formatElapsed(new Date(since), now)).toBe(expected);
+  });
+});
+
+describe("compareByUrgency", () => {
+  const base = { status: "pending" as const, openedAt: new Date("2026-10-09T08:00:00Z") };
+  it("orders by priority, then overdue, then due date, then age", () => {
+    const items = [
+      { id: "low", ...base, priority: "low" as const, dueAt: null },
+      { id: "high-later", ...base, priority: "high" as const, dueAt: new Date("2026-10-10T00:00:00Z") },
+      { id: "high-overdue", ...base, priority: "high" as const, dueAt: new Date("2026-10-09T10:00:00Z") },
+      { id: "critical", ...base, priority: "critical" as const, dueAt: null },
+    ];
+    const sorted = [...items].sort((a, b) => compareByUrgency(a, b, now)).map((i) => i.id);
+    expect(sorted).toEqual(["critical", "high-overdue", "high-later", "low"]);
   });
 });
