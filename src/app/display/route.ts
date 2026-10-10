@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { brand } from "@/config/brand";
 import { renderTvPage } from "@/lib/display/tv-page";
 
@@ -6,7 +7,10 @@ import { renderTvPage } from "@/lib/display/tv-page";
  * Sem sessão de utilizador: a TV é pareada com um código e usa uma credencial própria (cookie HttpOnly).
  * /display?demo=1 mostra o layout com dados fictícios (sem rede).
  */
-export function GET() {
+export async function GET() {
+  // Gerada a cada pedido: nunca pré-renderizada nem guardada em cache.
+  await connection();
+
   return new Response(renderTvPage(brand.productName), {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
